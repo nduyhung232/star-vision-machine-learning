@@ -1,0 +1,8 @@
+Flask
+Werkzeug
+csbdeep
+numpy
+matplotlib
+Pillow
+stardist
+flask_cors
