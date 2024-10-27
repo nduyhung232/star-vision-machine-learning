@@ -1,8 +1,10 @@
 Flask
 Werkzeug
 csbdeep
-numpy
+numpy<2
 matplotlib
 Pillow
 stardist
 flask_cors
+blueprinter
+setuptools

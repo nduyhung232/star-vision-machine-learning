@@ -36,22 +36,26 @@ Nếu đồ án sử dụng mã nguồn từ bên ngoài, hãy liệt kê nguồ
 
 1. Create a virtual environment.
 ```bash
-python -m venv venv
+python -m venv .venv
 ```
 
 2. Active the virtual environment:
 - Windows
 ````bash
-venv\Scripts\activate
+.venv\Scripts\activate
 ````
 - MacOS/Linux
 ````bash
-source venv/bin/activate
+source .venv/bin/activate
 ````
 
 3. Install required packages:
 ````bash
 pip install -r requirements.txt
+````
+4. Install TensorFlow 2: https://www.tensorflow.org/install
+````bash
+pip install tensorflow
 ````
 
 ## Run application
