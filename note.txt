@@ -1,0 +1,2 @@
+https://encord.com/blog/image-thresholding-image-processing/
+https://blog.roboflow.com/image-thresholding/
