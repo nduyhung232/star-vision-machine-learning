@@ -8,3 +8,4 @@ stardist
 flask_cors
 blueprinter
 setuptools
+opencv-python

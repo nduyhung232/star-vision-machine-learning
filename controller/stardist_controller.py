@@ -20,8 +20,7 @@ stardist_controller = Blueprint('stardist_controller', __name__)
 
 RAW_DATA_FOLDER = 'raw_data'
 MODEL_FOLDER = 'models'
-CORS(stardist_controller, origins=["http://45.118.144.26:5173", "http://0.0.0.0:5173", "http://172.17.0.1:5173",
-                               "http://192.168.144.1:5173", "http://localhost:5173", "http://localhost:8080"])
+CORS(stardist_controller, origins=["http://localhost:8080"])
 
 @stardist_controller.route('/api/v1.0/segmentation', methods=['POST'])
 def get_image():
