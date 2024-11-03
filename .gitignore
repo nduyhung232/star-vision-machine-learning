@@ -133,3 +133,4 @@ dmypy.json
 # store data
 /models
 /raw_data
+/static

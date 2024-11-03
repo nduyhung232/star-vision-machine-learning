@@ -18,8 +18,8 @@ from tqdm import tqdm
 
 stardist_controller = Blueprint('stardist_controller', __name__)
 
-RAW_DATA_FOLDER = 'raw_data'
-MODEL_FOLDER = 'models'
+RAW_DATA_FOLDER = 'startdist/raw_data'
+MODEL_FOLDER = 'startdist/models'
 CORS(stardist_controller, origins=["http://localhost:8080"])
 
 @stardist_controller.route('/api/v1.0/segmentation', methods=['POST'])

@@ -16,6 +16,10 @@ CORS(file_management, origins=["http://localhost:8080"])
 # Get list model
 @file_management.route('/api/v1.0/models', methods=['GET'])
 def get_models():
+    # Đảm bảo thư mục MODEL_FOLDER tồn tại
+    if not os.path.exists(MODEL_FOLDER):
+        os.makedirs(MODEL_FOLDER, exist_ok=True)
+
     subdir = [name for name in os.listdir(MODEL_FOLDER)]
     return subdir
 
