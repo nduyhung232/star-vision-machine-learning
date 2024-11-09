@@ -13,7 +13,7 @@ CORS(threshold, origins=["http://localhost:8080"])
 
 
 # Get list model
-@threshold.route('/threshold', methods=['POST'])
+@threshold.route('/api/v1.0/threshold', methods=['POST'])
 def threshold_image():
     # Kiểm tra xem có tệp được tải lên không
     if 'image' not in request.files:
