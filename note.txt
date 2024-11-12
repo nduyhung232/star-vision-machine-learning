@@ -3,3 +3,4 @@ https://blog.roboflow.com/image-thresholding/
 https://www.semanticscholar.org/paper/A-Threshold-Selection-Method-from-Gray-Level-Otsu/91343f9ce2e7d702c2ff837830bd35259ff8fd99
 
 https://www.ibm.com/topics/image-segmentation
+https://bktt.vn/Ph%C3%A2n_v%C3%B9ng_%E1%BA%A3nh#:~:text=Ph%C3%A2n%20v%C3%B9ng%20%E1%BA%A3nh%20l%C3%A0%20b%C3%A0i,d%E1%BB%B1a%20tr%C3%AAn%20ph%C3%A1t%20hi%E1%BB%87n%20bi%C3%AAn.
