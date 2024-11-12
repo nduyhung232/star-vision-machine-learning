@@ -1,3 +1,5 @@
 https://encord.com/blog/image-thresholding-image-processing/
 https://blog.roboflow.com/image-thresholding/
 https://www.semanticscholar.org/paper/A-Threshold-Selection-Method-from-Gray-Level-Otsu/91343f9ce2e7d702c2ff837830bd35259ff8fd99
+
+https://www.ibm.com/topics/image-segmentation
