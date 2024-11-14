@@ -18,12 +18,12 @@ from tqdm import tqdm
 
 stardist_controller = Blueprint('stardist_controller', __name__)
 
-RAW_DATA_FOLDER = 'startdist/raw_data'
-MODEL_FOLDER = 'startdist/models'
+RAW_DATA_FOLDER = 'stardist/raw_data'
+MODEL_FOLDER = 'stardist/models'
 CORS(stardist_controller, origins=["http://localhost:8080"])
 
 @stardist_controller.route('/api/v1.0/segmentation', methods=['POST'])
-def get_image():
+def segmentation():
     # Open image from request:
     imageUpload = request.files['image']
     modelName = request.form['modelName']
@@ -37,7 +37,7 @@ def get_image():
     image = normalize(image, 1, 99.8, axis=axis_norm)
 
     # Open trained model
-    model = StarDist2D(None, name=modelName, basedir='models')
+    model = StarDist2D(None, name=modelName, basedir=MODEL_FOLDER)
 
     # Predict the image
     y_test = model.predict_instances(image, n_tiles=model._guess_n_tiles(image), show_tile_progress=False)
@@ -216,7 +216,7 @@ def training():
         # alternatively, try this:
         # limit_gpu_memory(None, allow_growth=True)
 
-    model = StarDist2D(conf, name=modelName, basedir='models')
+    model = StarDist2D(conf, name=modelName, basedir=MODEL_FOLDER)
 
     median_size = calculate_extents(list(Y), np.median)
     fov = np.array(model._axes_tile_overlap('YX'))
@@ -233,7 +233,7 @@ def training():
         plot_img_label(img_aug, lbl_aug, img_title="image augmented", lbl_title="label augmented")
 
 
-    model.train(X_trn, Y_trn, epochs=10, validation_data=(X_val, Y_val), augmenter=augmenter)
+    model.train(X_trn, Y_trn, epochs=100, validation_data=(X_val, Y_val), augmenter=augmenter)
     model.optimize_thresholds(X_val, Y_val)
 
     return jsonify({'message': 'Training completed!'}), 200

@@ -8,8 +8,8 @@ from flask import request, jsonify
 
 file_management = Blueprint('file_management', __name__)
 
-RAW_DATA_FOLDER = 'raw_data'
-MODEL_FOLDER = 'models'
+RAW_DATA_FOLDER = 'stardist/raw_data'
+MODEL_FOLDER = 'stardist/models'
 CORS(file_management, origins=["http://localhost:8080"])
 
 

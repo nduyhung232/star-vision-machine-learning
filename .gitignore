@@ -133,4 +133,5 @@ dmypy.json
 # store data
 /models
 /raw_data
+/stardist
 /static
