@@ -87,7 +87,18 @@ def convert_tiff_to_png():
     output_buffer.seek(0)
     return Response(output_buffer, content_type='image/png')
 
-# Do training
+### Do training
+# Common variables
+EPOCHS = 10  # Số epoch huấn luyện
+BATCH_SIZE = 8  # Kích thước batch
+RAYS = 32  # Số lượng tia phát ra từ tâm
+GRID = (2, 2)  # Kích thước grid
+PATCH_SIZE = (256, 256)  # Kích thước patch đầu vào
+PROB_THRESHOLD = 0.5  # Ngưỡng xác suất chọn vật thể
+NMS_THRESHOLD = 0.4  # Ngưỡng non-maximum suppression
+LEARNING_RATE = 0.0003  # Tốc độ học
+USE_GPU = False
+
 np.random.seed(42)
 lbl_cmap = random_label_cmap()
 def plot_img_label(img, lbl, img_title="image", lbl_title="label", **kwargs):
@@ -190,25 +201,20 @@ def training():
 
     print(Config2D.__doc__)
 
-    # 32 is a good default choice (see 1_data.ipynb)
-    n_rays = 32
-
-    # Use OpenCL-based computations for data generator during training (requires 'gputools')
-    use_gpu = False and gputools_available()
-
-    # Predict on subsampled grid for increased efficiency and larger field of view
-    grid = (2, 2)
-
     conf = Config2D(
-        n_rays=n_rays,
-        grid=grid,
-        use_gpu=use_gpu,
-        n_channel_in=n_channel,
+        rays=RAYS,
+        grid=GRID,
+        train_patch_size=PATCH_SIZE,
+        train_epochs=EPOCHS,
+        train_batch_size=BATCH_SIZE,
+        train_learning_rate=LEARNING_RATE,
+        use_gpu=USE_GPU,
+        n_channel_in=n_channel
     )
     print(conf)
     vars(conf)
 
-    if use_gpu:
+    if USE_GPU:
         from csbdeep.utils.tf import limit_gpu_memory
 
         # adjust as necessary: limit GPU memory to be used by TensorFlow to leave some to OpenCL-based computations
