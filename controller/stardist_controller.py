@@ -90,14 +90,16 @@ def convert_tiff_to_png():
 ### Do training
 # Common variables
 EPOCHS = 10  # Số epoch huấn luyện
-BATCH_SIZE = 8  # Kích thước batch
-RAYS = 32  # Số lượng tia phát ra từ tâm
+USE_GPU = gputools_available()
+RAYS = 64  # Số lượng tia phát ra từ tâm
 GRID = (2, 2)  # Kích thước grid
+
+
 PATCH_SIZE = (256, 256)  # Kích thước patch đầu vào
 PROB_THRESHOLD = 0.5  # Ngưỡng xác suất chọn vật thể
 NMS_THRESHOLD = 0.4  # Ngưỡng non-maximum suppression
+BATCH_SIZE = 8  # Kích thước batch
 LEARNING_RATE = 0.0003  # Tốc độ học
-USE_GPU = False
 
 np.random.seed(42)
 lbl_cmap = random_label_cmap()
@@ -199,17 +201,11 @@ def training():
     plot_img_label(img, lbl)
     None;
 
-    print(Config2D.__doc__)
-
     conf = Config2D(
-        rays=RAYS,
+        n_rays=RAYS,
         grid=GRID,
-        train_patch_size=PATCH_SIZE,
-        train_epochs=EPOCHS,
-        train_batch_size=BATCH_SIZE,
-        train_learning_rate=LEARNING_RATE,
         use_gpu=USE_GPU,
-        n_channel_in=n_channel
+        n_channel_in=n_channel,
     )
     print(conf)
     vars(conf)
@@ -238,8 +234,7 @@ def training():
         img_aug, lbl_aug = augmenter(img, lbl)
         plot_img_label(img_aug, lbl_aug, img_title="image augmented", lbl_title="label augmented")
 
-
-    model.train(X_trn, Y_trn, epochs=100, validation_data=(X_val, Y_val), augmenter=augmenter)
+    model.train(X_trn, Y_trn, epochs=EPOCHS, validation_data=(X_val, Y_val), augmenter=augmenter)
     model.optimize_thresholds(X_val, Y_val)
 
     return jsonify({'message': 'Training completed!'}), 200
