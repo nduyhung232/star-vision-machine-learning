@@ -100,16 +100,6 @@ rng = np.random.seed(42)
 lbl_cmap = random_label_cmap()
 
 
-def plot_img_label(img, lbl, img_title="image", lbl_title="label", **kwargs):
-    fig, (ai, al) = plt.subplots(1, 2, figsize=(12, 5), gridspec_kw=dict(width_ratios=(1.25, 1)))
-    im = ai.imshow(img, cmap='gray', clim=(0, 1))
-    ai.set_title(img_title)
-    fig.colorbar(im, ax=ai)
-    al.imshow(lbl, cmap=lbl_cmap)
-    al.set_title(lbl_title)
-    plt.tight_layout()
-
-
 def random_fliprot(img, mask):
     assert img.ndim >= mask.ndim
     axes = tuple(range(mask.ndim))
@@ -133,11 +123,17 @@ def augmenter(x, y):
     x is an input image
     y is the corresponding ground-truth label image
     """
+    # Áp dụng phép lật và xoay ngẫu nhiên cho ảnh và nhãn
     x, y = random_fliprot(x, y)
+
+    # Thay đổi cường độ ảnh một cách ngẫu nhiên (tăng/giảm độ sáng)
     x = random_intensity_change(x)
-    # add some gaussian noise
-    sig = 0.02 * np.random.uniform(0, 1)
-    x = x + sig * np.random.normal(0, 1, x.shape)
+
+    # Thêm một chút nhiễu Gaussian vào ảnh để tăng độ phong phú cho dữ liệu
+    sig = 0.02 * np.random.uniform(0, 1)    # Tạo giá trị sigma ngẫu nhiên từ 0 đến 0.02
+    x = x + sig * np.random.normal(0, 1, x.shape)   # Thêm nhiễu Gaussian vào ảnh
+
+    # Trả về ảnh đã được tăng cường (augmented) cùng với nhãn gốc
     return x, y
 
 
