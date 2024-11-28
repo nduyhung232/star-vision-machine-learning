@@ -14,7 +14,7 @@ from csbdeep.utils import normalize
 from glob import glob
 import sys
 from tqdm import tqdm
-
+import json
 
 stardist_controller = Blueprint('stardist_controller', __name__)
 
@@ -94,15 +94,9 @@ USE_GPU = gputools_available()
 RAYS = 64  # Số lượng tia phát ra từ tâm
 GRID = (2, 2)  # Kích thước grid
 
-
-PATCH_SIZE = (256, 256)  # Kích thước patch đầu vào
-PROB_THRESHOLD = 0.5  # Ngưỡng xác suất chọn vật thể
-NMS_THRESHOLD = 0.4  # Ngưỡng non-maximum suppression
-BATCH_SIZE = 8  # Kích thước batch
-LEARNING_RATE = 0.0003  # Tốc độ học
-
 np.random.seed(42)
 lbl_cmap = random_label_cmap()
+
 def plot_img_label(img, lbl, img_title="image", lbl_title="label", **kwargs):
     fig, (ai, al) = plt.subplots(1, 2, figsize=(12, 5), gridspec_kw=dict(width_ratios=(1.25, 1)))
     im = ai.imshow(img, cmap='gray', clim=(0, 1))
@@ -207,7 +201,7 @@ def training():
         use_gpu=USE_GPU,
         n_channel_in=n_channel,
     )
-    print(conf)
+    print(f'- configration - {conf}')
     vars(conf)
 
     if USE_GPU:
@@ -234,7 +228,36 @@ def training():
         img_aug, lbl_aug = augmenter(img, lbl)
         plot_img_label(img_aug, lbl_aug, img_title="image augmented", lbl_title="label augmented")
 
-    model.train(X_trn, Y_trn, epochs=EPOCHS, validation_data=(X_val, Y_val), augmenter=augmenter)
+    history = model.train(X_trn, Y_trn, epochs=EPOCHS, validation_data=(X_val, Y_val), augmenter=augmenter)
     model.optimize_thresholds(X_val, Y_val)
+
+
+    # Lưu log history
+    history_file = os.path.join(MODEL_FOLDER, modelName, "training_history.json")
+    with open(history_file, 'w') as f:
+        json.dump(history.history, f)
+    print(f"Training history saved at {history_file}")
+
+    # Vẽ biểu đồ loss
+    def plot_training_history(history):
+        train_loss = history.history['loss']
+        val_loss = history.history['val_loss']
+        epochs_range = range(1, len(train_loss) + 1)
+
+        plt.figure(figsize=(10, 5))
+        plt.plot(epochs_range, train_loss, label='Training Loss', marker='o')
+        plt.plot(epochs_range, val_loss, label='Validation Loss', marker='o')
+        plt.title('Loss During Training')
+        plt.xlabel('Epoch')
+        plt.ylabel('Loss')
+        plt.legend()
+        plt.grid()
+        plt.tight_layout()
+        plt.show()
+
+    # Vẽ biểu đồ
+    plot_training_history(history)
+
+    plt.savefig(os.path.join(MODEL_FOLDER, modelName, 'loss_plot.png'))
 
     return jsonify({'message': 'Training completed!'}), 200
