@@ -96,7 +96,7 @@ RAYS = 32  # Số lượng tia phát ra từ tâm
 GRID = (2, 2)  # Kích thước grid
 N_CHANNEL = 1
 
-rng = np.random.seed(42)
+np.random.seed(42)
 lbl_cmap = random_label_cmap()
 
 
@@ -164,6 +164,7 @@ def training():
 
     # Kiểm tra kích thước của các ảnh và mặt nạ
     for x, y in zip(X, Y):
+        print(x.shape, y.shape)
         assert x.shape == y.shape, "Ảnh và mặt nạ phải có cùng kích thước"
 
     # Giới hạn bộ nhớ GPU nếu sử dụng GPU để tránh xung đột tài nguyên
@@ -182,6 +183,7 @@ def training():
     # Kiểm tra số lượng dữ liệu, phải có ít nhất 2 mẫu
     assert len(X) > 1, "not enough training data"
 
+    rng = np.random.RandomState(42)
     # Hoán vị chỉ số của toàn bộ dữ liệu
     ind = rng.permutation(len(X))
 
