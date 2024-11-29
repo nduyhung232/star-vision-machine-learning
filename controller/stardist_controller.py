@@ -167,11 +167,6 @@ def training():
         print(x.shape, y.shape)
         assert x.shape == y.shape, "Ảnh và mặt nạ phải có cùng kích thước"
 
-    # Giới hạn bộ nhớ GPU nếu sử dụng GPU để tránh xung đột tài nguyên
-    if USE_GPU:
-        from csbdeep.utils.tf import limit_gpu_memory
-        limit_gpu_memory(0.8)  # Giới hạn GPU sử dụng tối đa 80% bộ nhớ
-
     # Trục cần được chuẩn hóa độc lập (theo chiều không gian: trục 0 và 1)
     axis_norm = (0, 1)
 
@@ -180,7 +175,7 @@ def training():
     # Điền lỗ hổng (fill holes) trong nhãn (Y) để đảm bảo nhãn không bị gián đoạn
     Y = [fill_label_holes(y) for y in tqdm(Y)]
 
-    # Kiểm tra số lượng dữ liệu, phải có ít nhất 2 mẫu
+    # Kiểm tra số lượng dữ liệu, phải có ít nhất 2 mẫu trở lên
     assert len(X) > 1, "not enough training data"
 
     rng = np.random.RandomState(42)
@@ -197,8 +192,13 @@ def training():
 
     # In số lượng ảnh, số ảnh dùng để train và số ảnh dùng để validation
     print('number of images: %3d' % len(X))
-    print('- training:       %3d' % len(X_trn))
-    print('- validation:     %3d' % len(X_val))
+    print('training:       %3d' % len(X_trn))
+    print('validation:     %3d' % len(X_val))
+
+    # Giới hạn bộ nhớ GPU nếu sử dụng GPU để tránh xung đột tài nguyên
+    if USE_GPU:
+        from csbdeep.utils.tf import limit_gpu_memory
+        limit_gpu_memory(0.8)  # Giới hạn GPU sử dụng tối đa 80% bộ nhớ
 
     # Cấu hình mô hình StarDist
     conf = Config2D(
