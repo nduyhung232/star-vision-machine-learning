@@ -139,17 +139,26 @@ def augmenter(x, y):
 
 @stardist_controller.route('/api/v1.0/training', methods=['POST'])
 def training():
-    modelName = request.form['modelName']
+    datarawName = request.form['modelName']
+    epochs = request.form['epochs']
+    rays = request.form['rays']
 
-    # Kiểm tra model có tồn tại không
-    subdirectory_path = os.path.join(RAW_DATA_FOLDER, modelName)
+    if epochs:
+        EPOCHS = int(epochs)
+    if rays:
+        RAYS = int(rays)
+
+    modelName = datarawName + '_' + rays + '_' + epochs
+
+    # Kiểm tra data raw có tồn tại không
+    subdirectory_path = os.path.join(RAW_DATA_FOLDER, datarawName)
     if not os.path.isdir(subdirectory_path):
-        print(f"Data raw of {modelName} does not exist")
+        print(f"Data raw of {datarawName} does not exist")
         return jsonify({'message': "Data raw does not exist"}), 400
 
     # Đường dẫn tới các thư mục chứa ảnh và mặt nạ
-    image_folder = RAW_DATA_FOLDER + '/' + modelName + '/images'
-    mask_folder = RAW_DATA_FOLDER + '/' + modelName + '/masks'
+    image_folder = RAW_DATA_FOLDER + '/' + datarawName + '/images'
+    mask_folder = RAW_DATA_FOLDER + '/' + datarawName + '/masks'
 
     # Đọc các đường dẫn tới các tệp ảnh và mặt nạ
     image_files = sorted(glob(os.path.join(image_folder, '*.tif')))
@@ -164,7 +173,6 @@ def training():
 
     # Kiểm tra kích thước của các ảnh và mặt nạ
     for x, y in zip(X, Y):
-        print(x.shape, y.shape)
         assert x.shape == y.shape, "Ảnh và mặt nạ phải có cùng kích thước"
 
     # Trục cần được chuẩn hóa độc lập (theo chiều không gian: trục 0 và 1)
