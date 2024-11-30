@@ -4,16 +4,17 @@ from io import BytesIO
 from flask_cors import CORS
 import numpy as np
 import matplotlib.pyplot as plt
-from PIL import Image
-from stardist import random_label_cmap, fill_label_holes, calculate_extents, gputools_available
+from stardist import random_label_cmap, fill_label_holes, gputools_available
 from stardist.models import StarDist2D, Config2D
 from tifffile import imread
+from skimage.io import imsave
 import base64
 import os
 from csbdeep.utils import normalize
 from glob import glob
 from tqdm import tqdm
 import json
+from skimage import io
 
 stardist_controller = Blueprint('stardist_controller', __name__)
 
@@ -24,47 +25,51 @@ CORS(stardist_controller, origins=["http://localhost:8080"])
 
 @stardist_controller.route('/api/v1.0/segmentation', methods=['POST'])
 def segmentation():
-    # Open image from request:
+    # Mở ảnh từ yêu cầu
     imageUpload = request.files['image']
     modelName = request.form['modelName']
     modelColorMap = request.form['colorMap']
 
-    # Open image by pilow and normalize image
-    axis_norm = (0, 1)
-    image = Image.open(imageUpload)
-    image = image.convert('L')
-    image = np.array(image)
+    # Mở ảnh bằng skimage
+    image = io.imread(imageUpload)
+
+    # Kiểm tra xem ảnh có phải là ảnh 1D hay 2D và áp dụng normalize() phù hợp
+    if image.ndim == 1:
+        axis_norm = 0  # Dùng axis=0 cho mảng 1D
+    elif image.ndim == 2:
+        axis_norm = (0, 1)  # Dùng cả hai trục cho mảng 2D
+    else:
+        axis_norm = (0, 1)  # Mặc định cho các mảng nhiều chiều
+
+    # Chuẩn hóa ảnh
     image = normalize(image, 1, 99.8, axis=axis_norm)
 
-    # Open trained model
+    # Mở mô hình đã được huấn luyện
     model = StarDist2D(None, name=modelName, basedir=MODEL_FOLDER)
 
-    # Predict the image
+    # Dự đoán ảnh
     y_test = model.predict_instances(image, n_tiles=model._guess_n_tiles(image), show_tile_progress=False)
 
-    # Define a colormap
+    # Định nghĩa một colormap
     cmap = random_label_cmap()
     if modelColorMap != "random_label_cmap":
         cmap = plt.get_cmap(modelColorMap)
 
-    # Normalize the grayscale image values to the range [0, 1]
+    # Chuẩn hóa giá trị ảnh grayscale về phạm vi [0, 1]
     normalized_image = (y_test[0] - y_test[0].min()) / (y_test[0].max() - y_test[0].min())
 
-    # Apply the colormap to the normalized image
+    # Áp dụng colormap cho ảnh đã chuẩn hóa
     image = (cmap(normalized_image) * 255).astype(np.uint8)
-    image = Image.fromarray(image)
-    # image.save('output.png')
 
-    # Save the image to a BytesIO object
+    # Lưu vào buffer BytesIO
     image_bytes = BytesIO()
-    image.save(image_bytes, format='PNG')
+    io.imsave(image_bytes, image, plugin='pil')  # Không cần 'format' nữa khi dùng PIL plugin
     image_bytes.seek(0)
 
-    # Return the image as a response with the appropriate content type
-    # return Response(image_bytes, content_type='image/png')
+    # Chuyển đổi ảnh sang base64 để trả về trong phản hồi
     image_base64 = base64.b64encode(image_bytes.getvalue()).decode('utf-8')
 
-    # Create a dictionary to hold the image and text data
+    # Tạo dictionary chứa dữ liệu ảnh và các thông tin cần thiết
     response_data = {
         'imageBytes': image_base64,
         'objectsCount': len(y_test[1]['points']),
@@ -72,20 +77,29 @@ def segmentation():
         'coord': y_test[1]['coord'].tolist(),
     }
 
-    # Return the response as JSON with image and text data
+    # Trả về phản hồi dưới dạng JSON với dữ liệu ảnh và văn bản
     return jsonify(response_data)
 
 
 @stardist_controller.route('/api/v1.0/convert', methods=['POST'])
 def convert_tiff_to_png():
     tiff_file = request.files['tiff_file']
-    tiff_image = Image.open(tiff_file)
+
     if tiff_file and (tiff_file.filename.endswith('.tif') or tiff_file.filename.endswith('.tiff')):
-        tiff_image = tiff_image.convert('RGB')
-    output_buffer = BytesIO()
-    tiff_image.save(output_buffer, format='PNG')
-    output_buffer.seek(0)
-    return Response(output_buffer, content_type='image/png')
+        # Đọc ảnh TIFF bằng skimage
+        tiff_image = imread(tiff_file)
+
+        # Convert ảnh TIFF sang RGB nếu là ảnh đơn sắc (grayscale)
+        if tiff_image.ndim == 2:  # Nếu ảnh grayscale (2D)
+            tiff_image = np.stack([tiff_image] * 3, axis=-1)  # Convert thành RGB
+
+        # Lưu ảnh dưới dạng PNG vào buffer (không cần 'format' khi dùng PIL plugin)
+        output_buffer = BytesIO()
+        imsave(output_buffer, tiff_image, plugin='pil')  # Loại bỏ 'format' ở đây
+        output_buffer.seek(0)
+
+        # Trả về ảnh PNG dưới dạng phản hồi
+        return Response(output_buffer, content_type='image/png')
 
 
 ### Do training
@@ -251,22 +265,34 @@ def loss_during_training(history, modelName):
     # Đường dẫn đầy đủ đến file
     filepath = os.path.join(MODEL_FOLDER, modelName, 'loss_plot.png')
 
-    # Vẽ và lưu biểu đồ
+    # Lấy các giá trị loss từ history
     train_loss = history.history['loss']
     val_loss = history.history['val_loss']
+
+    # Áp dụng hàm sigmoid vào các giá trị loss
+    train_loss_sigmoid = sigmoid(np.array(train_loss))
+    val_loss_sigmoid = sigmoid(np.array(val_loss))
+
+    # Tạo dãy số lượng epoch
     epochs_range = range(1, len(train_loss) + 1)
 
+    # Vẽ biểu đồ
     plt.figure(figsize=(10, 5))
-    plt.plot(epochs_range, train_loss, label='Training Loss', marker='o')
-    plt.plot(epochs_range, val_loss, label='Validation Loss', marker='o')
-    plt.title('Loss During Training')
+    plt.plot(epochs_range, train_loss_sigmoid, label='Training Loss (Sigmoid)', marker='o')
+    plt.plot(epochs_range, val_loss_sigmoid, label='Validation Loss (Sigmoid)', marker='o')
+    plt.title('Loss During Training (Sigmoid)')
     plt.xlabel('Epoch')
-    plt.ylabel('Loss')
+    plt.ylabel('Sigmoid Loss')
     plt.legend()
     plt.grid()
     plt.tight_layout()
 
+    # Lưu biểu đồ
     plt.savefig(filepath)
     plt.close()  # Đóng biểu đồ để tránh lỗi bộ nhớ
 
     print(f"Biểu đồ đã được lưu tại: {filepath}")
+
+
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))

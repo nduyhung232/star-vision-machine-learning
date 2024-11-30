@@ -32,8 +32,8 @@ def convert_jpg_to_tif(input_folder, output_folder):
 
 
 # Thư mục chứa file .jpg và nơi lưu file .tif
-input_folder = "C:/Users/Tom Nguyen/Downloads/bubble-dataset/train/origin"
-output_folder = "C:/Users/Tom Nguyen/Downloads/bubble-dataset/train/images"
+input_folder = "E:/star-vision/star-vision-machine-learning/data/bubble-dataset/valid/origin"
+output_folder = "E:/star-vision/star-vision-machine-learning/data/bubble-dataset/valid/images"
 
 # Gọi hàm chuyển đổi
 convert_jpg_to_tif(input_folder, output_folder)

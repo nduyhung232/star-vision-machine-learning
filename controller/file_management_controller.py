@@ -53,7 +53,7 @@ def delete_models():
         except Exception as e:
             print(f'Error occurred: {e}')
     else:
-        return jsonify({"message": "File raw data not exist"}), 400
+        print(f'File raw data not exist: {folderPath}')
 
     # Delete model
     folderModelPath = MODEL_FOLDER + "/" + modelName
@@ -68,6 +68,7 @@ def delete_models():
         except Exception as e:
             print(f'Error occurred: {e}')
     else:
+        print(f'File model not exist: {folderPath}')
         return jsonify({"message": "File model not exist"}), 400
 
     return jsonify({"message": "Success"}), 200

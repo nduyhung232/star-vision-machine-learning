@@ -1,56 +1,57 @@
-import os
 import json
-from PIL import Image, ImageDraw
+import numpy as np
+from skimage.draw import polygon
+from tifffile import imwrite
+import os
+from tqdm import tqdm
 
 # Ngưỡng kích thước tối thiểu (width, height)
 min_width = 256
 min_height = 256
 
-def create_mask_from_coco(json_path, images_folder, masks_folder, output_format='tif'):
-    # Tạo thư mục masks nếu chưa tồn tại
-    os.makedirs(masks_folder, exist_ok=True)
+def create_mask_from_coco(json_file, output_mask_folder):
+    # Tải dữ liệu COCO
+    with open(json_file, 'r') as f:
+        coco_data = json.load(f)
 
-    # Load file JSON
-    with open(json_path, "r") as file:
-        coco_data = json.load(file)
+    # Tạo thư mục lưu mask nếu chưa tồn tại
+    os.makedirs(output_mask_folder, exist_ok=True)
 
-    # Lấy danh sách ảnh và annotations
-    images = {img["id"]: img["file_name"] for img in coco_data["images"]}
-    annotations = coco_data["annotations"]
+    # Duyệt qua từng ảnh trong dữ liệu
+    for img_info in tqdm(coco_data['images']):
+        # Thông tin ảnh
+        img_id = img_info['id']
+        width = img_info['width']
+        height = img_info['height']
+        file_name = img_info['file_name']
 
-    # Duyệt qua từng ảnh
-    for image_id, image_name in images.items():
-        # Lấy tất cả annotations có image_id trùng khớp
-        image_annotations = [ann for ann in annotations if ann["image_id"] == image_id]
+        # Tạo mask đa lớp (ban đầu tất cả là 0 - nền)
+        mask = np.zeros((height, width), dtype=np.uint8)
 
-        # Load ảnh để biết kích thước (nếu cần)
-        image_path = os.path.join(images_folder, image_name)
-        if not os.path.exists(image_path):
-            continue
+        # Lấy annotations liên quan đến ảnh này
+        annotations = [ann for ann in coco_data['annotations'] if ann['image_id'] == img_id]
 
-        with Image.open(image_path) as img:
-            width, height = img.size
+        # Duyệt qua từng annotation
+        for ann in annotations:
+            category_id = ann['category_id']  # Lớp của đối tượng
+            for seg in ann['segmentation']:
+                # Xây dựng polygon từ segmentation
+                poly = np.array(seg).reshape(-1, 2)
+                rr, cc = polygon(poly[:, 1], poly[:, 0], mask.shape)
+                mask[rr, cc] = category_id  # Gán giá trị lớp
 
-        # Khởi tạo mask trống
-        mask = Image.new("L", (width, height), 0)  # Mask nhị phân, giá trị 0 hoặc 255
-        draw = ImageDraw.Draw(mask)
+        # Lưu mask thành tệp ảnh
+        mask_file_name = os.path.splitext(file_name)[0] + '_mask.tif'
+        mask_path = os.path.join(output_mask_folder, mask_file_name)
+        imwrite(mask_path, mask)
 
-        # Duyệt qua từng vật thể và vẽ mask
-        for ann in image_annotations:
-            if "segmentation" in ann and isinstance(ann["segmentation"], list):
-                for seg in ann["segmentation"]:
-                    polygon = [(seg[i], seg[i + 1]) for i in range(0, len(seg), 2)]
-                    draw.polygon(polygon, fill=255)  # Vẽ vật thể với giá trị 255
-
-        # Lưu mask với phần mở rộng .tif
-        mask_path = os.path.join(masks_folder, f"{os.path.splitext(image_name)[0]}.tif")
-        mask.save(mask_path, format="TIFF")  # Sử dụng "TIFF" cho định dạng file
-        print(f"Saved mask for {image_name} to {mask_path}")
 
 # Thông tin đầu vào
-json_path = 'C:/Users/Tom Nguyen/Downloads/bubble-dataset/valid/_annotations.coco.json'
-images_folder = 'C:/Users/Tom Nguyen/Downloads/bubble-dataset/valid/origin'
-masks_folder = 'C:/Users/Tom Nguyen/Downloads/bubble-dataset/valid/masks'
+json_file = 'E:/star-vision/star-vision-machine-learning/data/bubble-dataset/valid/_annotations.coco.json'
+images_folder = 'E:/star-vision/star-vision-machine-learning/data/bubble-dataset/valid/origin'
+output_mask_folder = 'E:/star-vision/star-vision-machine-learning/data/bubble-dataset/valid/masks'
 output_format = 'tif'
 
-create_mask_from_coco(json_path, images_folder, masks_folder, output_format)
+
+# Tạo mask
+create_mask_from_coco(json_file, images_folder, output_mask_folder)
