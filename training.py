@@ -22,10 +22,7 @@ GRID = (2, 2)  # Kích thước grid
 N_CHANNEL = 1
 
 
-def training():
-    datarawName = 'bubble'
-    epochs = '50'
-    rays = '64'
+def training(datarawName, epochs, rays):
 
     if epochs:
         EPOCHS = int(epochs)
@@ -200,4 +197,5 @@ def augmenter(x, y):
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
-training()
+training(datarawName='bubble', epochs='1', rays='32')
+training(datarawName='bubble', epochs='2', rays='32')
