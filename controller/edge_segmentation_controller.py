@@ -20,7 +20,7 @@ def canny_edge_segmentation():
     if 'image' not in request.files:
         return jsonify({"error": "No image provided"}), 400
 
-    # Đảm bảo thư mục THRESHOLD_FOLDER tồn tại
+    # Đảm bảo thư mục EDGE_FOLDER tồn tại
     if not os.path.exists('static/' + EDGE_FOLDER):
         os.makedirs('static/' + EDGE_FOLDER, exist_ok=True)
 
@@ -35,13 +35,37 @@ def canny_edge_segmentation():
     threshold_value1, threshold_value2 = 100, 200  # Các ngưỡng tùy chọn
     edges = cv2.Canny(image_np, threshold1=threshold_value1, threshold2=threshold_value2)
 
-    # Lưu ảnh đã xử lý vào thư mục static
-    file_name = generate_filename()
-    thresholded_image_path = os.path.join('static/' + EDGE_FOLDER, file_name)
-    cv2.imwrite(thresholded_image_path, edges)
+    # Tìm contours từ ảnh Canny
+    contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
+    # Tạo danh sách bounding boxes
+    bounding_boxes = []
+    for contour in contours:
+        x, y, w, h = cv2.boundingRect(contour)  # Lấy bounding box
+        bounding_boxes.append({'x': x, 'y': y, 'width': w, 'height': h})
+
+    # Vẽ bounding boxes lên ảnh
+    segmented_image = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)  # Chuyển ảnh về màu để vẽ
+    for box in bounding_boxes:
+        x, y, w, h = box['x'], box['y'], box['width'], box['height']
+        cv2.rectangle(segmented_image, (x, y), (x + w, y + h), (0, 0, 255), 2)  # Vẽ bounding box màu đỏ
+
+    # Lưu ảnh Canny
+    canny_image_file_name = generate_filename()
+    canny_image_path = os.path.join('static/' + EDGE_FOLDER, canny_image_file_name)
+    cv2.imwrite(canny_image_path, edges)
+
+    # Lưu ảnh đã phân đoạn
+    segmented_image_file_name = generate_filename()
+    segmented_image_path = os.path.join('static/' + EDGE_FOLDER, segmented_image_file_name)
+    cv2.imwrite(segmented_image_path, segmented_image)
+
+    # Trả về JSON với thông tin cần thiết
     return jsonify({
-        'canny_image_url': url_for('static', filename=f'{EDGE_FOLDER}/{file_name}')
+        'edged_image_url': url_for('static', filename=f'{EDGE_FOLDER}/{canny_image_file_name}'),
+        'segmented_image_url': url_for('static', filename=f'{EDGE_FOLDER}/{segmented_image_file_name}'),
+        'bounding_boxes': bounding_boxes,
+        'total_bounding_boxes': len(bounding_boxes)
     }), 200
 
 

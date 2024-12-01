@@ -53,10 +53,6 @@ source .venv/bin/activate
 ````bash
 pip install -r requirements.txt
 ````
-4. Install TensorFlow 2: https://www.tensorflow.org/install
-````bash
-pip install tensorflow
-````
 
 ## Run application
 ````bash

@@ -68,7 +68,7 @@ def segmentation():
 
     # Chuyển đổi ảnh sang base64 để trả về trong phản hồi
     image_base64 = base64.b64encode(image_bytes.getvalue()).decode('utf-8')
-
+    print(f'------------------- {y_test}')
     # Tạo dictionary chứa dữ liệu ảnh và các thông tin cần thiết
     response_data = {
         'imageBytes': image_base64,
@@ -93,7 +93,7 @@ def convert_tiff_to_png():
         if tiff_image.ndim == 2:  # Nếu ảnh grayscale (2D)
             tiff_image = np.stack([tiff_image] * 3, axis=-1)  # Convert thành RGB
 
-        # Lưu ảnh dưới dạng PNG vào buffer (không cần 'format' khi dùng PIL plugin)
+        # Lưu ảnh dưới dạng PNG vào buffer
         output_buffer = BytesIO()
         imsave(output_buffer, tiff_image, plugin='pil')  # Loại bỏ 'format' ở đây
         output_buffer.seek(0)
