@@ -47,11 +47,10 @@ def create_mask_from_coco(json_file, output_mask_folder):
 
 
 # Thông tin đầu vào
-json_file = 'E:/star-vision/star-vision-machine-learning/data/bubble-dataset/valid/_annotations.coco.json'
-images_folder = 'E:/star-vision/star-vision-machine-learning/data/bubble-dataset/valid/origin'
-output_mask_folder = 'E:/star-vision/star-vision-machine-learning/data/bubble-dataset/valid/masks'
+json_file = 'data/bubble-dataset/valid/_annotations.coco.json'
+images_folder = 'data/bubble-dataset/valid/origin'
+output_mask_folder = 'data/bubble-dataset/valid/masks'
 output_format = 'tif'
-
 
 # Tạo mask
 create_mask_from_coco(json_file, images_folder, output_mask_folder)

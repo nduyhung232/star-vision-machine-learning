@@ -2,7 +2,7 @@ import os
 from PIL import Image
 
 # Đường dẫn tới folder chứa ảnh
-folder_path = "E:/star-vision/star-vision-machine-learning/data/bubble-dataset/valid/masks"
+folder_path = "data/bubble-dataset/valid/masks"
 
 # Ngưỡng kích thước tối thiểu (width, height)
 min_width = 256

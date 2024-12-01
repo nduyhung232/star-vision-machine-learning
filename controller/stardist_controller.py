@@ -30,10 +30,10 @@ def segmentation():
     modelName = request.form['modelName']
     modelColorMap = request.form['colorMap']
 
-    # Mở ảnh bằng skimage
+    # Mở ảnh
     image = io.imread(imageUpload)
 
-    # Kiểm tra xem ảnh có phải là ảnh 1D hay 2D và áp dụng normalize() phù hợp
+    # Kiểm tra xem ảnh có phải là ảnh 1D hay 2D
     if image.ndim == 1:
         axis_norm = 0  # Dùng axis=0 cho mảng 1D
     elif image.ndim == 2:

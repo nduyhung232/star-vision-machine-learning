@@ -1,13 +1,7 @@
 from PIL import Image
 import os
 
-
 def convert_jpg_to_tif(input_folder, output_folder):
-    """
-    Chuyển đổi tất cả các file .jpg trong thư mục đầu vào thành .tif với kích thước giữ nguyên.
-    :param input_folder: Thư mục chứa file .jpg
-    :param output_folder: Thư mục lưu trữ file .tif
-    """
     # Tạo thư mục đầu ra nếu chưa tồn tại
     os.makedirs(output_folder, exist_ok=True)
 
@@ -32,8 +26,8 @@ def convert_jpg_to_tif(input_folder, output_folder):
 
 
 # Thư mục chứa file .jpg và nơi lưu file .tif
-input_folder = "E:/star-vision/star-vision-machine-learning/data/bubble-dataset/valid/origin"
-output_folder = "E:/star-vision/star-vision-machine-learning/data/bubble-dataset/valid/images"
+input_folder = "data/bubble-dataset/valid/origin"
+output_folder = "data/bubble-dataset/valid/images"
 
 # Gọi hàm chuyển đổi
 convert_jpg_to_tif(input_folder, output_folder)
