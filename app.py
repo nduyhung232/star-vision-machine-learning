@@ -1,6 +1,6 @@
 from flask import Flask
 from controller.file_management_controller import file_management
-from controller.hog_controller import hog
+from controller.hog_controller import hog_bp
 from controller.stardist_controller import stardist_controller
 from controller.threshold_controller import threshold
 from controller.edge_segmentation_controller import edge
@@ -14,7 +14,7 @@ app.register_blueprint(file_management)
 app.register_blueprint(stardist_controller)
 app.register_blueprint(threshold)
 app.register_blueprint(edge)
-app.register_blueprint(hog)
+app.register_blueprint(hog_bp)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
