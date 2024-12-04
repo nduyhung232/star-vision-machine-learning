@@ -1,54 +1,55 @@
-from flask import request, jsonify
-import os
-import cv2
-from skimage.feature import hog
-from skimage import exposure
 import numpy as np
-from flask_cors import CORS
 from flask import Blueprint
+from flask_cors import CORS
+from flask import request, jsonify, url_for
+import cv2
+import os
+from PIL import Image
 import uuid
 from datetime import datetime
 
-edge = Blueprint('edge', __name__)
+hog = Blueprint('hog', __name__)
 
-EDGE_FOLDER = 'edge_segmentation_images'
-CORS(edge, origins=["http://localhost:8080"])
+HOG_FOLDER = 'hog_images'
+CORS(hog, origins=["http://localhost:8080"])
 
 
-@edge.route('/api/v1.0/hog', methods=['POST'])
+@hog.route('/api/v1.0/hog', methods=['POST'])
 def hog_segmentation():
+    # Kiểm tra xem có file ảnh trong request không
     if 'image' not in request.files:
-        return jsonify({'error': 'No file part'}), 400
+        return jsonify({"error": "No image provided"}), 400
 
+    # Đảm bảo thư mục HOG_FOLDER tồn tại
+    if not os.path.exists('static/' + HOG_FOLDER):
+        os.makedirs('static/' + HOG_FOLDER, exist_ok=True)
+
+    # Lấy file ảnh từ request
     file = request.files['image']
-    if file.filename == '':
-        return jsonify({'error': 'No selected file'}), 400
+    image = Image.open(file.stream).convert('L')  # Chuyển ảnh thành grayscale
 
-    # Đọc ảnh và xử lý HOG
-    image = cv2.imread(input_path, cv2.IMREAD_GRAYSCALE)
-    if image is None:
-        return jsonify({'error': 'Invalid image file'}), 400
+    # Chuyển ảnh thành mảng numpy
+    image_np = np.array(image)
 
-    # Tính toán HOG
-    fd, hog_image = hog(
-        image,
-        orientations=9,
-        pixels_per_cell=(8, 8),
-        cells_per_block=(2, 2),
-        block_norm='L2-Hys',
-        visualize=True,
-        channel_axis=None
-    )
+    # Áp dụng thuật toán HOG
+    cell_size = (8, 8)  # Kích thước ô
+    block_size = (2, 2)  # Số ô trong mỗi khối
+    bins = 9  # Số hướng
+    hog_features, hog_image = hog(image_np,
+                                  pixels_per_cell=cell_size,
+                                  cells_per_block=block_size,
+                                  orientations=bins,
+                                  visualize=True,
+                                  channel_axis=None)
 
-    # Tăng cường độ tương phản để hiển thị kết quả HOG
-    hog_image_rescaled = exposure.rescale_intensity(hog_image, in_range=(0, 10))
+    # Lưu ảnh HOG vào thư mục static
+    file_name = generate_filename()
+    hog_image_path = os.path.join('static/' + HOG_FOLDER, file_name)
+    cv2.imwrite(hog_image_path, (hog_image * 255).astype('uint8'))  # Chuẩn hóa ảnh HOG
 
-    # Lưu ảnh kết quả
-    output_filename = f"hog_{file.filename}"
-    output_path = os.path.join(app.config['OUTPUT_FOLDER'], output_filename)
-    cv2.imwrite(output_path, (hog_image_rescaled * 255).astype(np.uint8))
-
-    return jsonify({'message': 'Image processed successfully', 'output_path': output_path}), 200
+    return jsonify({
+        'hog_image_url': url_for('static', filename=f'{HOG_FOLDER}/{file_name}')
+    }), 200
 
 
 def generate_filename(extension='png'):
