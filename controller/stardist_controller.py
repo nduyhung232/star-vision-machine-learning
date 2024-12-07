@@ -68,7 +68,7 @@ def segmentation():
 
     # Chuyển đổi ảnh sang base64 để trả về trong phản hồi
     image_base64 = base64.b64encode(image_bytes.getvalue()).decode('utf-8')
-    print(f'------------------- {y_test}')
+
     # Tạo dictionary chứa dữ liệu ảnh và các thông tin cần thiết
     response_data = {
         'imageBytes': image_base64,
