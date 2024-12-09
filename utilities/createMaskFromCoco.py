@@ -47,10 +47,8 @@ def create_mask_from_coco(json_file, output_mask_folder):
 
 
 # Thông tin đầu vào
-json_file = 'data/bubble-dataset/valid/_annotations.coco.json'
-images_folder = 'data/bubble-dataset/valid/origin'
-output_mask_folder = 'data/bubble-dataset/valid/masks'
-output_format = 'tif'
+json_file = 'data/BubANN_GAN.v1i.coco-segmentation/train/_annotations.coco.json'
+output_mask_folder = 'data/BubANN_GAN.v1i.coco-segmentation/train/masks'
 
 # Tạo mask
-create_mask_from_coco(json_file, images_folder, output_mask_folder)
+create_mask_from_coco(json_file, output_mask_folder)

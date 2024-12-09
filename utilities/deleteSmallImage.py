@@ -2,11 +2,11 @@ import os
 from PIL import Image
 
 # Đường dẫn tới folder chứa ảnh
-folder_path = "data/bubble-dataset/valid/masks"
+folder_path = "C:/Users/ADMIN/Downloads/BubANN_GAN.v1i.coco-segmentation/train"
 
 # Ngưỡng kích thước tối thiểu (width, height)
-min_width = 256
-min_height = 256
+min_width = 640
+min_height = 640
 
 # Duyệt qua tất cả file trong folder
 for filename in os.listdir(folder_path):

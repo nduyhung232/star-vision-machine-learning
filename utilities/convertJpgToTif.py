@@ -26,8 +26,8 @@ def convert_jpg_to_tif(input_folder, output_folder):
 
 
 # Thư mục chứa file .jpg và nơi lưu file .tif
-input_folder = "data/bubble-dataset/valid/origin"
-output_folder = "data/bubble-dataset/valid/images"
+input_folder = "data/BubANN_GAN.v1i.coco-segmentation/test/origin"
+output_folder = "data/BubANN_GAN.v1i.coco-segmentation/test/images"
 
 # Gọi hàm chuyển đổi
 convert_jpg_to_tif(input_folder, output_folder)
