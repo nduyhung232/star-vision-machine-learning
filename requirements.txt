@@ -10,3 +10,4 @@ blueprinter
 setuptools
 opencv-python
 tensorflow
+scikit-learn

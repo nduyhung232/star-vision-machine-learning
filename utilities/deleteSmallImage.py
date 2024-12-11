@@ -2,7 +2,7 @@ import os
 from PIL import Image
 
 # Đường dẫn tới folder chứa ảnh
-folder_path = "C:/Users/ADMIN/Downloads/BubANN_GAN.v1i.coco-segmentation/train"
+folder_path = "data/BubANN_GAN.v1i.coco-segmentation/valid/origin"
 
 # Ngưỡng kích thước tối thiểu (width, height)
 min_width = 640

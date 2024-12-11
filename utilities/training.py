@@ -9,7 +9,7 @@ from csbdeep.utils import normalize
 from glob import glob
 from tqdm import tqdm
 import json
-
+from tensorflow.keras.callbacks import Callback
 
 RAW_DATA_FOLDER = 'stardist/raw_data'
 MODEL_FOLDER = 'stardist/models'
@@ -20,7 +20,6 @@ USE_GPU = gputools_available()
 RAYS = 32  # Số lượng tia phát ra từ tâm
 GRID = (2, 2)  # Kích thước grid
 N_CHANNEL = 1
-
 
 def training(datarawName, epochs, rays):
 
@@ -112,6 +111,7 @@ def training(datarawName, epochs, rays):
 
     # Vẽ biểu đồ
     loss_during_training(history, modelName)
+    iou_during_training(history, modelName)
 
 
 # Lưu log training
@@ -158,6 +158,41 @@ def loss_during_training(history, modelName):
 
     print(f"Biểu đồ đã được lưu tại: {filepath}")
 
+# Vẽ biểu đồ IOU
+def iou_during_training(history, modelName):
+    # Đảm bảo thư mục tồn tại
+    os.makedirs(MODEL_FOLDER, exist_ok=True)
+
+    # Đường dẫn lưu biểu đồ
+    filepath = os.path.join(MODEL_FOLDER, modelName, 'iou_plot.png')
+
+    # Lấy giá trị IOU từ history (giả sử có 'iou' và 'val_iou' trong history)
+    train_iou = history.history.get('iou', [])
+    val_iou = history.history.get('val_iou', [])
+
+    if not train_iou or not val_iou:
+        print("No IOU data found in history.")
+        return
+
+    # Dãy số lượng epoch
+    epochs_range = range(1, len(train_iou) + 1)
+
+    # Vẽ biểu đồ
+    plt.figure(figsize=(10, 5))
+    plt.plot(epochs_range, train_iou, label='Training IOU', marker='o')
+    plt.plot(epochs_range, val_iou, label='Validation IOU', marker='o')
+    plt.title('IOU During Training')
+    plt.xlabel('Epoch')
+    plt.ylabel('IOU')
+    plt.legend()
+    plt.grid()
+    plt.tight_layout()
+
+    # Lưu biểu đồ
+    plt.savefig(filepath)
+    plt.close()
+
+    print(f"Biểu đồ IOU đã được lưu tại: {filepath}")
 
 def random_fliprot(img, mask):
     assert img.ndim >= mask.ndim
@@ -170,7 +205,6 @@ def random_fliprot(img, mask):
             img = np.flip(img, axis=ax)
             mask = np.flip(mask, axis=ax)
     return img, mask
-
 
 def random_intensity_change(img):
     img = img * np.random.uniform(0.6, 2) + np.random.uniform(-0.2, 0.2)
@@ -197,5 +231,26 @@ def augmenter(x, y):
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
+class IOUMetric(Callback):
+    def __init__(self, val_data):
+        self.val_data = val_data  # Validation data (X_val, Y_val)
+        self.train_ious = []
+        self.val_ious = []
 
-training(datarawName='nucle-data', epochs='3', rays='32')
+    def on_epoch_end(self, epoch, logs=None):
+        # Tính IOU trên tập validation
+        X_val, Y_val = self.val_data
+        val_pred = self.model.predict(X_val)
+        val_iou = self.calculate_iou(Y_val, val_pred)
+        self.val_ious.append(val_iou)
+
+        logs["val_iou"] = val_iou  # Ghi log IOU vào history
+
+    @staticmethod
+    def calculate_iou(y_true, y_pred):
+        # Hàm tính toán IOU cơ bản
+        intersection = np.logical_and(y_true, y_pred).sum()
+        union = np.logical_or(y_true, y_pred).sum()
+        return intersection / union if union != 0 else 0
+
+training(datarawName='bubble-v2', epochs='3', rays='32')
