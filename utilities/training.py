@@ -110,9 +110,6 @@ def training(datarawName, epochs, rays):
     # Lưu log training history
     save_log_training(history, modelName)
 
-    # Tính toán IoU cho từng epoch và lưu kết quả
-    iou_plot(model, modelName, X_val, Y_val)
-
     # Vẽ biểu đồ
     loss_during_training(history, modelName)
 
@@ -200,29 +197,5 @@ def augmenter(x, y):
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
-def iou_plot(model, modelName, X_val, Y_val):
-    # Tính toán IoU cho từng epoch và lưu kết quả
-    iou_history = []
-    for epoch in range(EPOCHS):
-        val_predictions = [model.predict(x) for x in X_val]
-        epoch_iou = np.mean([iou_metric(p, t) for p, t in zip(val_predictions, Y_val)])
-        iou_history.append(epoch_iou)
-        print(f"Epoch {epoch + 1}/{EPOCHS}, IoU: {epoch_iou:.4f}")
 
-    # Vẽ biểu đồ IoU
-    plt.figure(figsize=(10, 6))
-    plt.plot(range(1, EPOCHS + 1), iou_history, marker='o', label='Validation IoU')
-    plt.xlabel('Epochs')
-    plt.ylabel('IoU')
-    plt.title('IoU Over Epochs')
-    plt.legend()
-    plt.grid()
-    plt.savefig(f"{modelName}_iou_plot.png")  # Lưu biểu đồ
-    plt.show()
-
-def iou_metric(pred, true):
-    intersection = np.logical_and(pred, true).sum()
-    union = np.logical_or(pred, true).sum()
-    return intersection / union if union != 0 else 0
-
-training(datarawName='bubble-v2', epochs='3', rays='64')
+training(datarawName='nucle-data', epochs='3', rays='32')
