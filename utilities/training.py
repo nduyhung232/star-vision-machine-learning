@@ -9,7 +9,6 @@ from csbdeep.utils import normalize
 from glob import glob
 from tqdm import tqdm
 import json
-from tensorflow.keras.callbacks import Callback
 
 RAW_DATA_FOLDER = 'stardist/raw_data'
 MODEL_FOLDER = 'stardist/models'
@@ -111,8 +110,6 @@ def training(datarawName, epochs, rays):
 
     # Vẽ biểu đồ
     loss_during_training(history, modelName)
-    iou_during_training(history, modelName)
-
 
 # Lưu log training
 def save_log_training(history, modelName):
@@ -230,27 +227,5 @@ def augmenter(x, y):
 
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
-
-class IOUMetric(Callback):
-    def __init__(self, val_data):
-        self.val_data = val_data  # Validation data (X_val, Y_val)
-        self.train_ious = []
-        self.val_ious = []
-
-    def on_epoch_end(self, epoch, logs=None):
-        # Tính IOU trên tập validation
-        X_val, Y_val = self.val_data
-        val_pred = self.model.predict(X_val)
-        val_iou = self.calculate_iou(Y_val, val_pred)
-        self.val_ious.append(val_iou)
-
-        logs["val_iou"] = val_iou  # Ghi log IOU vào history
-
-    @staticmethod
-    def calculate_iou(y_true, y_pred):
-        # Hàm tính toán IOU cơ bản
-        intersection = np.logical_and(y_true, y_pred).sum()
-        union = np.logical_or(y_true, y_pred).sum()
-        return intersection / union if union != 0 else 0
 
 training(datarawName='bubble-v2', epochs='3', rays='32')

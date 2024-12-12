@@ -4,16 +4,16 @@ from stardist.models import StarDist2D
 from tifffile import imread
 from sklearn.metrics import jaccard_score
 import matplotlib.pyplot as plt
+from csbdeep.utils import normalize
 
-
-save_path = '/stardist/models/bubble-v2_64_10'
+save_path = '/stardist/models/nucle'
 
 # Đường dẫn tới tập dữ liệu kiểm tra
-test_images_folder = "data/BubANN_GAN.v1i.coco-segmentation/valid/images"
-test_masks_folder = "data/BubANN_GAN.v1i.coco-segmentation/valid/masks"
+test_images_folder = "data/nucle-data/test/images"
+test_masks_folder = "data/nucle-data/test/masks"
 
 # Nạp mô hình đã được huấn luyện
-model_path = "stardist/models/bubble-v2_64_10"
+model_path = "stardist/models/nucle"
 
 def calculate_iou(y_true, y_pred):
     """Hàm tính toán IOU."""
@@ -38,6 +38,17 @@ for img_file, mask_file in zip(image_files, mask_files):
     # Đọc ảnh và nhãn
     img = imread(img_path)
     true_mask = imread(mask_path)
+
+    # Kiểm tra xem ảnh có phải là ảnh 1D hay 2D
+    if img.ndim == 1:
+        axis_norm = 0  # Dùng axis=0 cho mảng 1D
+    elif img.ndim == 2:
+        axis_norm = (0, 1)  # Dùng cả hai trục cho mảng 2D
+    else:
+        axis_norm = (0, 1)  # Mặc định cho các mảng nhiều chiều
+
+    # Chuẩn hóa ảnh
+    img = normalize(img, 1, 99.8, axis=axis_norm)
 
     # Dự đoán bằng mô hình
     pred_mask, _ = model.predict_instances(img)
