@@ -6,14 +6,14 @@ from sklearn.metrics import jaccard_score
 import matplotlib.pyplot as plt
 from csbdeep.utils import normalize
 
-save_path = '/stardist/models/nucle'
+save_path = 'stardist/models/bubble-v3_64_400'
 
 # Đường dẫn tới tập dữ liệu kiểm tra
-test_images_folder = "data/nucle-data/test/images"
-test_masks_folder = "data/nucle-data/test/masks"
+test_images_folder = "stardist/raw_data/bubble-v3/images"
+test_masks_folder = "stardist/raw_data/bubble-v3/masks"
 
 # Nạp mô hình đã được huấn luyện
-model_path = "stardist/models/nucle"
+model_path = "stardist/models/bubble-v3_64_400"
 
 def calculate_iou(y_true, y_pred):
     """Hàm tính toán IOU."""

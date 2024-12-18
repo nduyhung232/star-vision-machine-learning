@@ -228,4 +228,4 @@ def augmenter(x, y):
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
-training(datarawName='bubble-v2', epochs='3', rays='32')
+training(datarawName='bubble-v3', epochs='200', rays='32')
